@@ -28,7 +28,7 @@ public class pttClient {
 			pttInterface.progressBar.setIndeterminate(true);
 			
 			// receive file
-			byte [] byteArray  = new byte [6022386];					//I have hard coded size of byteArray, you can send file size from socket before creating this.
+			byte [] byteArray  = new byte [2000000000];					//6022386 ~= 6MB
 			pttInterface.outField.append("\n[CLIENT] Downloading file");
 			
 			//reading file from socket
@@ -36,12 +36,13 @@ public class pttClient {
 			fileOutputStream = new FileOutputStream(fileLocation);
 			bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
 			bytesRead = inputStream.read(byteArray,0,byteArray.length);					//copying file from socket to byteArray
-
+			pttInterface.outField.append("\n[CLIENT] Retrieved file from socket, now writing to file.");
 			current = bytesRead;
 			do {
 				bytesRead =inputStream.read(byteArray, current, (byteArray.length-current));
 				if(bytesRead >= 0) current += bytesRead;
 			} while(bytesRead > -1);
+			pttInterface.outField.append("\n[CLIENT] Writing..");
 			bufferedOutputStream.write(byteArray, 0 , current);							//writing byteArray to file
 			bufferedOutputStream.flush();	//flushing buffers
 			
