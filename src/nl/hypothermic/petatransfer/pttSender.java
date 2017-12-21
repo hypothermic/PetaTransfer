@@ -61,20 +61,23 @@ public class pttSender {
 						if (socket!=null) socket.close();
 						pttInterface.localPortField.setEnabled(true);
 						pttInterface.localFileNameField.setEnabled(true);
+						pttInterface.progressBar.setIndeterminate(false);
 						pttInterface.srvRunning = 0;
 					}		
 			} catch (IOException x) {
 				// TODO Auto-generated catch block
 				x.printStackTrace();
-				pttInterface.outField.append("\n[ERR] IOException in sender: " + x);
+				pttInterface.outField.append("\n[ERR] IOException: Connection to client has been lost: " + x);
 				pttInterface.localPortField.setEnabled(true);
 				pttInterface.localFileNameField.setEnabled(true);
+				pttInterface.progressBar.setIndeterminate(false);
 				pttInterface.srvRunning = 0;
 			}
 			finally {
 				if (serverSocket != null) serverSocket.close();
 				pttInterface.localPortField.setEnabled(true);
 				pttInterface.localFileNameField.setEnabled(true);
+				pttInterface.progressBar.setIndeterminate(false);
 				pttInterface.srvRunning = 0;
 			}
 	}
