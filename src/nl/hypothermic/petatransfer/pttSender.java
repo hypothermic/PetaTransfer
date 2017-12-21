@@ -24,7 +24,7 @@ public class pttSender {
 			pttInterface.outField.append("\nstarted sender thr ");
 		}
 		
-		//creating connection between sender and receiver
+		///creating connection between sender and receiver
 		try {
 			serverSocket = new ServerSocket(portNo);
 			pttInterface.outField.append("\n[SERVER] Waiting for receiver...");

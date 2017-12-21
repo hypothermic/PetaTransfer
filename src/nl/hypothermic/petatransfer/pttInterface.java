@@ -35,8 +35,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Properties;
 import java.awt.event.ActionEvent;
 import java.awt.ScrollPane;
@@ -55,8 +57,8 @@ public class pttInterface {
 	static JTextArea outField = new JTextArea();
 	public static JProgressBar progressBar = new JProgressBar();
 	static int conf[] = new int[10];
-	static String[] langEN = new String[] {"Local File Name:","Local Port:","Enable Server","Save as:","Remote Address and Port","Receive File","About","Exit","todo","","",""};
-	static String[] langNL = new String[] {"Lokale Bestandsnaam:","Lokale Poort:","Server Inschakelen","Opslaan als:","Extern Adres en Poort:","Ontvang Bestand","Info","Afsluiten","todo","","",""};
+	static String[] langEN = new String[] {"Local File Name:","Local Port:","Enable Server","Save as:","Remote Address and Port","Receive File","About","Exit","\n[ERR] Server not reachable.","todo","",""};
+	static String[] langNL = new String[] {"Lokale Bestandsnaam:","Lokale Poort:","Server Inschakelen","Opslaan als:","Extern Adres en Poort:","Ontvang Bestand","Info","Afsluiten","\n[ERR] Server niet bereikbaar.","todo","",""};
 	static String[] langENTT = new String[] {"todo","","","","","","",""};
 	static String[] langNLTT = new String[] {"todo","","","","","","",""};
 	static String[] lang = new String[langEN.length];
@@ -285,23 +287,43 @@ public class pttInterface {
 		JButton receiveButton = new JButton(lang[5]);
 		receiveButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (clRunning == 1) {
+					return;
+				}
+				clRunning = 1;
 				if (saveAsField.getText() != "" && remoteAddrField.getText() != "" && remotePortField.getText() != "") {
 					try {
 						new Thread(() -> {
 							try {
 								pttClient.receiveFile(remoteAddrField.getText(), Integer.parseInt(remotePortField.getText()), saveAsField.getText());
+							} catch (UnknownHostException xh) {
+								outField.append(lang[8]);
+								System.out.println("UnknownHostException");
+								clRunning = 0;
+							} catch (ConnectException xc) {
+								outField.append(lang[8]);
+								System.out.println("ConnectException");
+								clRunning = 0;
 							} catch (IOException x) {
 								// TODO Auto-generated catch block
 								x.printStackTrace();
-								outField.append("[ERR] IOException in pttClient: " + x);
+								outField.append("\n[ERR] IOException in pttClient: " + x);
+								clRunning = 0;
+							} catch (Exception otherX) {
+								otherX.printStackTrace();
+								System.out.println(otherX);
+								outField.append("\n[ERR] Unknown exception in pttClient: " + otherX);
+								clRunning = 0;
 							}
 						}).start();
 					} catch (Exception x) {
 						x.printStackTrace();
-						outField.append("[ERR] Exception in creating pttClient thread: "+ x);
+						outField.append("\n[ERR] Exception in creating pttClient thread: "+ x);
+						clRunning = 0;
 					}
 				} else {
 					outField.append("\n[ERR] Fill in the required options.");
+					clRunning = 0;
 				}
 			}
 		});

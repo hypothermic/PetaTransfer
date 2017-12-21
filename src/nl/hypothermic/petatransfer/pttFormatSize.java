@@ -3,6 +3,7 @@ package nl.hypothermic.petatransfer;
 import java.text.DecimalFormat;
 
 public class pttFormatSize {
+	
 	public static String formatDecimaal(int size) {
 	    String hrSize = null;
 

@@ -4,7 +4,9 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class pttClient {
 		///pttClient.receiveFile(ipAddress, portNo, fileLocation);
@@ -47,14 +49,31 @@ public class pttClient {
 			pttInterface.progressBar.setIndeterminate(false);
 			
 			pttInterface.outField.append("\n[CLIENT] Content saved as \'" + fileLocation  + "\', total of \'" + pttFormatSize.formatDecimaal(current) + "\'");
+			pttInterface.clRunning = 0;
+		} catch (UnknownHostException xh) {
+			pttInterface.outField.append(pttInterface.lang[8]);
+			if (pttInterface.conf[7] == 1) {
+				pttInterface.outField.append("\nUnknownHostException in pttClient");
+			}
+			System.out.println("UnknownHostException");
+			pttInterface.clRunning = 0;
+		} catch (ConnectException xc) {
+			pttInterface.outField.append(pttInterface.lang[8]);
+			if (pttInterface.conf[7] == 1) {
+				pttInterface.outField.append("\nConnectException in pttClient");
+			}
+			System.out.println("ConnectException");
+			pttInterface.clRunning = 0;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			pttInterface.clRunning = 0;
 		}
 		finally {
 			if (fileOutputStream != null) fileOutputStream.close();
 			if (bufferedOutputStream != null) bufferedOutputStream.close();
 			if (socket != null) socket.close();
+			pttInterface.clRunning = 0;
 		}
 	}
 }
