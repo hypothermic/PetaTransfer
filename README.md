@@ -14,3 +14,4 @@
 ## To-do:
 - Translation of about, and errormessages/outputmessages.
 - Make server send the filename so client doesn't have to type it in.
+- Don't use byteArrays because they can only hold up to 2 GB
