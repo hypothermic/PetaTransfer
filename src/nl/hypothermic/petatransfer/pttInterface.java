@@ -209,7 +209,7 @@ public class pttInterface {
 								try {
 									if (conf[7] == 1) {
 										outField.append("\nCalculating file size");
-										if (new File(localFileNameField.getText()).length() > Integer.MAX_VALUE) {
+										if (new File(localFileNameField.getText()).length() > 2000000000) {
 											outField.append("\n[ERR] File bigger than maximum int size, too big to parse.");
 											fcPassed = 0;
 											srvRunning = 0;
