@@ -1,6 +1,6 @@
 # PetaTransfer v1.1
 ## Changelog:
-###v1.1  
+**v1.1**  
 
 - Partially added hardcoded EN and NL languages. Configure via properties file.
 - Progress Bar now activates while downloading.
@@ -8,7 +8,7 @@
 - Prevented spamming of server and client buttons.
 - More logging stuff and exception handling.  
 
-###v1.0  
+**v1.0**  
 
 - Initial Release  
 ## To-do:
