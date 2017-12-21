@@ -18,6 +18,7 @@ public class pttSender {
 		OutputStream outputStream = null;
 		ServerSocket serverSocket = null;
 		Socket socket = null;
+	
 
 		if (pttInterface.conf[7] == 1) {
 			pttInterface.outField.append("\nstarted sender thr ");
@@ -31,6 +32,9 @@ public class pttSender {
 						socket = serverSocket.accept();
 						pttInterface.outField.append("\n[SERVER] Accepted connection : " + socket);
 						//connection established successfully
+						
+						//progressbar
+						pttInterface.progressBar.setIndeterminate(true);
 	
 						//creating object to send file
 						File file = new File (fileLocation);
@@ -44,20 +48,34 @@ public class pttSender {
 						pttInterface.outField.append("\n[SERVER] Transferring \'" + fileLocation + "\', total of \'" + byteArray.length + "\' bytes.");
 						outputStream.write(byteArray,0,byteArray.length);			//copying byteArray to socket
 						outputStream.flush();										//flushing socket
-						pttInterface.outField.append("\n[SERVER] Done transferring file.");								//file has been sent
+						//progressBar
+						pttInterface.progressBar.setIndeterminate(false);
+						pttInterface.outField.append("\n[SERVER] Done transferring file.");	//file sent
+						pttInterface.localPortField.setEnabled(true);
+						pttInterface.localFileNameField.setEnabled(true);
+						pttInterface.srvRunning = 0;
 					}
 					finally {
 						if (bufferedInputStream != null) bufferedInputStream.close();
 						if (outputStream != null) bufferedInputStream.close();
 						if (socket!=null) socket.close();
+						pttInterface.localPortField.setEnabled(true);
+						pttInterface.localFileNameField.setEnabled(true);
+						pttInterface.srvRunning = 0;
 					}		
 			} catch (IOException x) {
 				// TODO Auto-generated catch block
 				x.printStackTrace();
-				pttInterface.outField.append("[ERR] IOException in sender: " + x);
+				pttInterface.outField.append("\n[ERR] IOException in sender: " + x);
+				pttInterface.localPortField.setEnabled(true);
+				pttInterface.localFileNameField.setEnabled(true);
+				pttInterface.srvRunning = 0;
 			}
 			finally {
 				if (serverSocket != null) serverSocket.close();
+				pttInterface.localPortField.setEnabled(true);
+				pttInterface.localFileNameField.setEnabled(true);
+				pttInterface.srvRunning = 0;
 			}
 	}
 }

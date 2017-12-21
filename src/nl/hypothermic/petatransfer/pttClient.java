@@ -7,11 +7,7 @@ import java.io.InputStream;
 import java.net.Socket;
 
 public class pttClient {
-
-
 		///pttClient.receiveFile(ipAddress, portNo, fileLocation);
-
-
 	public static void receiveFile(String ipAddress,int portNo,String fileLocation) throws IOException
 	{
 
@@ -24,11 +20,14 @@ public class pttClient {
 
 			//creating connection.
 			socket = new Socket(ipAddress,portNo);
-			System.out.println("\n[CLIENT] Connected to " + ipAddress);
+			pttInterface.outField.append("\n[CLIENT] Connected to " + ipAddress);
+			
+			///progressbar
+			pttInterface.progressBar.setIndeterminate(true);
 			
 			// receive file
 			byte [] byteArray  = new byte [6022386];					//I have hard coded size of byteArray, you can send file size from socket before creating this.
-			System.out.println("\n[CLIENT] Downloading file");
+			pttInterface.outField.append("\n[CLIENT] Downloading file");
 			
 			//reading file from socket
 			InputStream inputStream = socket.getInputStream();
@@ -42,9 +41,12 @@ public class pttClient {
 				if(bytesRead >= 0) current += bytesRead;
 			} while(bytesRead > -1);
 			bufferedOutputStream.write(byteArray, 0 , current);							//writing byteArray to file
-			bufferedOutputStream.flush();												//flushing buffers
+			bufferedOutputStream.flush();	//flushing buffers
 			
-			System.out.println("\n[CLIENT] Content saved as \'" + fileLocation  + "\', total of \'" + current + "\' bytes.");
+			//progressbar
+			pttInterface.progressBar.setIndeterminate(false);
+			
+			pttInterface.outField.append("\n[CLIENT] Content saved as \'" + fileLocation  + "\', total of \'" + pttFormatSize.formatDecimaal(current) + "\'");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

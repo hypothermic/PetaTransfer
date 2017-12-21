@@ -48,22 +48,30 @@ import java.awt.Toolkit;
 
 public class pttInterface {
 
-	// PTT info
 	public static String pttInfoVersion = "1.0";
 	public static String htmlAbout = "<center><b>PetaTransfer v" + pttInterface.pttInfoVersion + "</b><br>Made by Hypothermic<br>Contains code from Mohamadali Shaikh<br><br>GitHub:<i> https://github.com/hypothermic<br></i>Contact:<i> admin@hypothermic.nl</i></center>";
 	
 	private JFrame frmPetatransfer;
 	static JTextArea outField = new JTextArea();
-	JProgressBar progressBar = new JProgressBar();
+	public static JProgressBar progressBar = new JProgressBar();
 	static int conf[] = new int[10];
-	static String[] langEN = new String[] {"","",""};
-	static String[] langNL = new String[] {"","",""};
-	static int portNumber;
-	private static JTextField localFileNameField;
+	static String[] langEN = new String[] {"Local File Name:","Local Port:","Enable Server","Save as:","Remote Address and Port","Receive File","About","Exit","todo","","",""};
+	static String[] langNL = new String[] {"Lokale Bestandsnaam:","Lokale Poort:","Server Inschakelen","Opslaan als:","Extern Adres en Poort:","Ontvang Bestand","Info","Afsluiten","todo","","",""};
+	static String[] langENTT = new String[] {"todo","","","","","","",""};
+	static String[] langNLTT = new String[] {"todo","","","","","","",""};
+	static String[] lang = new String[langEN.length];
+	static String[] langTT = new String[langENTT.length];
+	static int portNumber; // testing only, not in release.
+	public static JTextField localFileNameField;
 	public static JTextField localPortField;
-	private static JTextField saveAsField;
-	private static JTextField remoteAddrField;
-	private static JTextField remotePortField;
+	public static JTextField saveAsField;
+	public static JTextField remoteAddrField;
+	public static JTextField remotePortField;
+	static int fcPassed = 1;
+	public static JButton receiveButton;
+	public static JButton enableServerButton;
+	public static int srvRunning = 0;
+	public static int clRunning = 0;
 	
 	public static void main(String[] args) {
 		initProps();
@@ -71,7 +79,14 @@ public class pttInterface {
 			conf[2] = 0;
 			initProps();
 		}
-		
+		System.out.println("Lang debug: " + conf[6]);
+		if (conf[6] == 0) {
+			lang = langEN;
+			langTT = langNLTT;
+		} else if (conf[6] == 1) {
+			lang = langNL;
+			langTT = langNLTT;
+		} else {outField.append("Error in conf[6]");}
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -104,7 +119,7 @@ public class pttInterface {
 		panel.setBackground(Color.LIGHT_GRAY);
 		frmPetatransfer.getContentPane().add(panel, BorderLayout.SOUTH);
 		
-		JButton btnEnableServerMode = new JButton("About");
+		JButton btnEnableServerMode = new JButton(lang[6]);
 		btnEnableServerMode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pttAbout.show();
@@ -115,7 +130,7 @@ public class pttInterface {
 		
 		panel.add(progressBar);
 		
-		JButton btnExit = new JButton("Exit");
+		JButton btnExit = new JButton(lang[7]);
 		btnExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
@@ -133,7 +148,7 @@ public class pttInterface {
 		outField.setToolTipText("Log");
 		outField.setLineWrap(true);
 		
-		outField.setText("------------------------------= PetaTransfer =-----------------------------");
+		outField.setText("-------------------------------------= PetaTransfer =-------------------------------------");
 		outField.setEditable(false);
 		outField.setVisible(true);
 		panel_2.add(outField);
@@ -151,8 +166,8 @@ public class pttInterface {
 		splitPane.setLeftComponent(panel_3);
 		
 		JTextPane localFileNameInfopanel = new JTextPane();
-		localFileNameInfopanel.setToolTipText("Name of the local file you want to upload");
-		localFileNameInfopanel.setText("Local file name:");
+		localFileNameInfopanel.setToolTipText(langTT[0]);
+		localFileNameInfopanel.setText(lang[0]);
 		localFileNameInfopanel.setEditable(false);
 		panel_3.add(localFileNameInfopanel);
 		
@@ -162,8 +177,8 @@ public class pttInterface {
 		panel_3.add(localFileNameField);
 		
 		JTextPane localPortInfoPanel = new JTextPane();
-		localPortInfoPanel.setToolTipText("Local port that you want to open");
-		localPortInfoPanel.setText("Local port:");
+		localPortInfoPanel.setToolTipText(langTT[1]);
+		localPortInfoPanel.setText(lang[1]);
 		localPortInfoPanel.setEditable(false);
 		panel_3.add(localPortInfoPanel);
 		
@@ -173,55 +188,93 @@ public class pttInterface {
 		localPortField.setColumns(10);
 		panel_3.add(localPortField);
 		
-		JButton enableServerButton = new JButton("Enable Server");
+		JButton enableServerButton = new JButton(lang[2]);
 		enableServerButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (srvRunning == 1) {
+					outField.append("[ERR] Server already running.");
+					return;
+				} else { ///{X1
+				srvRunning = 1;
+				outField.append("\ndebug");
+				localPortField.setEnabled(false);
+				localFileNameField.setEnabled(false);
 				if (localFileNameField.getText() != "" && new File(localFileNameField.getText()).isFile() && localPortField.getText() != "") {
 					try {
 						//int portNumber = Integer.parseInt(pttInterface.localPortField.getText());
 						new Thread(() -> {
 							try {
-								if (conf[7] == 1) {
-									pttInterface.outField.append("Success creating thread, now executing pttSender");
+								try {
+									if (conf[7] == 1) {
+										outField.append("\nCalculating file size");
+										if (new File(localFileNameField.getText()).length() > Integer.MAX_VALUE) {
+											outField.append("\n[ERR] File bigger than maximum int size, too big to parse.");
+											fcPassed = 0;
+											srvRunning = 0;
+											return;
+										}
+									}
+								} catch (Exception xe) {
+									outField.append("\n[ERR] Exception occurred while trying to get file size: " + xe);
+									xe.printStackTrace();
 								}
+								if (conf[7] == 1) {
+									outField.append("\nSuccess creating thread, now executing pttSender");
+								}
+								if (fcPassed == 1) {
 								pttSender.send((Integer.parseInt(pttInterface.localPortField.getText())), localFileNameField.getText());
+								} else {
+									srvRunning = 0;
+									return;
+								}
 							} catch (IOException e1) {
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
-								pttInterface.outField.append("[ERR] IOException in thread pttSender: " + e1);
+								outField.append("\n[ERR] IOException in thread pttSender: " + e1);
+								srvRunning = 0;
+								localPortField.setEnabled(true);
+								localFileNameField.setEnabled(true);
 							}
 						}).start();
 						//pttSender.send(portNumber, localFileNameField.getText());
 					} catch (Exception x) {
 						x.printStackTrace();
-						pttInterface.outField.append("[ERR] Exception in creating thread for pttSender: " + x);
+						outField.append("\n[ERR] Exception in creating thread for pttSender: " + x);
+						srvRunning = 0;
+						localPortField.setEnabled(true);
+						localFileNameField.setEnabled(true);
 					}
 				} else {
-					pttInterface.outField.append("\n[ERR] Make sure that the local file exists, and port is unused.");
-					pttInterface.outField.append("[INFO] Local file path examples: /home/user/myfile.txt or C:\\myfile.txt");
+					outField.append("\n[ERR] Make sure that the local file exists, and port is unused.");
+					outField.append("\n[INFO] Local file path examples: /home/user/myfile.txt or C:\\myfile.txt");
+					srvRunning = 0;
+					localPortField.setEnabled(true);
+					localFileNameField.setEnabled(true);
 				}
+				}///}X1
 			}
 		});
 		panel_3.add(enableServerButton);
+		
 		
 		JPanel panel_4 = new JPanel();
 		panel_4.setBackground(Color.LIGHT_GRAY);
 		splitPane.setRightComponent(panel_4);
 		
 		JTextPane saveAsInfopanel = new JTextPane();
-		saveAsInfopanel.setToolTipText("File name to save as");
-		saveAsInfopanel.setText("Save as:");
+		saveAsInfopanel.setToolTipText(langTT[3]);
+		saveAsInfopanel.setText(lang[3]);
 		saveAsInfopanel.setEditable(false);
 		panel_4.add(saveAsInfopanel);
 		
 		saveAsField = new JTextField();
-		saveAsField.setToolTipText("Enter File Name here");
+		saveAsField.setToolTipText(langTT[3]);
 		saveAsField.setColumns(10);
 		panel_4.add(saveAsField);
 		
 		JTextPane remoteAddrInfopanel = new JTextPane();
-		remoteAddrInfopanel.setToolTipText("Address of the server");
-		remoteAddrInfopanel.setText("Remote Address and Port:");
+		remoteAddrInfopanel.setToolTipText(langTT[4]);
+		remoteAddrInfopanel.setText(lang[4]);
 		remoteAddrInfopanel.setEditable(false);
 		panel_4.add(remoteAddrInfopanel);
 		
@@ -229,29 +282,26 @@ public class pttInterface {
 		remoteAddrField.setColumns(10);
 		panel_4.add(remoteAddrField);
 		
-		JButton receiveButton = new JButton("Receive File");
+		JButton receiveButton = new JButton(lang[5]);
 		receiveButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (saveAsField.getText() != "" && remoteAddrField.getText() != "" && remotePortField.getText() != "") {
 					try {
-						//int portNumber = Integer.getInteger(pttInterface.localPortField.getText());
 						new Thread(() -> {
 							try {
-								pttClient.receiveFile(remoteAddrField.getText(), Integer.parseInt(pttInterface.remotePortField.getText()), saveAsField.getText());
+								pttClient.receiveFile(remoteAddrField.getText(), Integer.parseInt(remotePortField.getText()), saveAsField.getText());
 							} catch (IOException x) {
 								// TODO Auto-generated catch block
 								x.printStackTrace();
-								pttInterface.outField.append("[ERR] IOException in pttClient: " + x);
+								outField.append("[ERR] IOException in pttClient: " + x);
 							}
 						}).start();
-						//pttSender.send(portNumber, localFileNameField.getText());
 					} catch (Exception x) {
 						x.printStackTrace();
-						pttInterface.outField.append("[ERR] Exception in creating pttClient thread: "+ x);
+						outField.append("[ERR] Exception in creating pttClient thread: "+ x);
 					}
 				} else {
-					pttInterface.outField.append("\n[ERR] Make sure that the local file exists, and port is unused.");
-					pttInterface.outField.append("[INFO] Local file path examples: /home/user/myfile.txt or C:\\myfile.txt");
+					outField.append("\n[ERR] Fill in the required options.");
 				}
 			}
 		});
@@ -309,22 +359,18 @@ public class pttInterface {
     			}
     			// Load lang
     			try {
-    				String propsLang = props.getProperty("lang");
-    				if (propsLang == "en") {
+    				try {int propsLang = Integer.parseInt(props.getProperty("lang"));
+    				if (propsLang == 0) {
+    					System.out.println("Langset:en");
     					conf[6] = 0;
-    					if (conf[7] == 1) {
-    						
-    					}
-    				} else if (propsLang == "nl") {
+    				} else if (propsLang == 1) {
+    					System.out.println("Langset:nl");
     					conf[6] = 1;
-    					if (conf[7] == 1) {
-    						
-    					}
     				} else {
     					// lang ! en of nl
-    					outField.append("[ERR] Language not set correctly. Defaulting to English.");
+    					System.out.println("[ERR] Language not set correctly. Defaulting to English.");
     					conf[6] = 0;
-    				}
+    				} } catch (NumberFormatException x) {System.out.println(x);conf[6]=0;}
     			} catch (Exception x5) {
     				x5.printStackTrace();
     				outField.append("\n[ERR] Exception in property lang: " + x5);
@@ -334,15 +380,16 @@ public class pttInterface {
     		}
     	} else {
     		// Set first-run
+    		System.out.println("firstrun");
     		conf[2] = 1;
     		// Generate props file
     		FileWriter propwrite = null;
     		Properties props = new Properties();
-    		props.setProperty("lang", "en");
+    		props.setProperty("lang", "0");
     		props.setProperty("debug", "0");
     		try {
     			propwrite = new FileWriter("petatransfer.properties");
-    			props.store(propwrite, "PetaTransfer by Hypothermic\nhttps://github.com/hypothermic");
+    			props.store(propwrite, "PetaTransfer by Hypothermic\nLanguage option: 0 for English/EN, 1 for Dutch/NL. Not everything is translated yet.\nhttps://github.com/hypothermic");
     			propwrite.close();
     		} catch (IOException x1) {
     			x1.printStackTrace();
