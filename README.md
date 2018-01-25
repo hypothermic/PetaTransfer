@@ -1,6 +1,6 @@
 # PetaTransfer v1.1
 ## Latest Releases:
-Android - https://github.com/hypothermic/PetaTransfer/releases/tag/v0.5 (beta)
+Android - https://github.com/hypothermic/PetaTransfer/releases/tag/v0.5 (beta)  
 Universal - https://github.com/hypothermic/PetaTransfer/releases/tag/v1.1 (release)
 ## Changelog:
 **v1.1**  
