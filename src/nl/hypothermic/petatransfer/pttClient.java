@@ -1,6 +1,7 @@
 package nl.hypothermic.petatransfer;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,7 +10,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class pttClient {
-		///pttClient.receiveFile(ipAddress, portNo, fileLocation);
 	public static void receiveFile(String ipAddress,int portNo,String fileLocation) throws IOException
 	{
 
@@ -20,6 +20,12 @@ public class pttClient {
 		Socket socket = null;
 		try {
 
+			long allocatedMemory = (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory());
+			long freeMemory = Runtime.getRuntime().maxMemory() - allocatedMemory;
+			if (freeMemory < 2000000000) {
+				pttInterface.outField.append("[CLIENT] Not enough memory availible. Exiting.");
+				return;
+			}
 			//creating connection.
 			socket = new Socket(ipAddress,portNo);
 			pttInterface.outField.append("\n[CLIENT] Connected to " + ipAddress);
@@ -28,14 +34,14 @@ public class pttClient {
 			pttInterface.progressBar.setIndeterminate(true);
 			
 			// receive file
-			byte [] byteArray  = new byte [2000000000];					//6022386 ~= 6MB
+			byte [] byteArray  = new byte [2000000000]; //6022386 ~= 6MB, 2000000000 ~= 2GB
 			pttInterface.outField.append("\n[CLIENT] Downloading file");
 			
 			//reading file from socket
 			InputStream inputStream = socket.getInputStream();
 			fileOutputStream = new FileOutputStream(fileLocation);
 			bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
-			bytesRead = inputStream.read(byteArray,0,byteArray.length);					//copying file from socket to byteArray
+			bytesRead = inputStream.read(byteArray,0,byteArray.length);
 			pttInterface.outField.append("\n[CLIENT] Retrieved file from socket, now writing to file.");
 			current = bytesRead;
 			do {
@@ -43,12 +49,14 @@ public class pttClient {
 				if(bytesRead >= 0) current += bytesRead;
 			} while(bytesRead > -1);
 			pttInterface.outField.append("\n[CLIENT] Writing..");
-			bufferedOutputStream.write(byteArray, 0 , current);							//writing byteArray to file
-			bufferedOutputStream.flush();	//flushing buffers
+			bufferedOutputStream.write(byteArray, 0 , current);
+			bufferedOutputStream.flush();
+			// ram cleanup
+			byteArray = null;
+			System.gc();
 			
 			//progressbar
 			pttInterface.progressBar.setIndeterminate(false);
-			
 			pttInterface.outField.append("\n[CLIENT] Content saved as \'" + fileLocation  + "\', total of \'" + pttFormatSize.formatDecimaal(current) + "\'");
 			pttInterface.clRunning = 0;
 		} catch (UnknownHostException xh) {
@@ -75,6 +83,7 @@ public class pttClient {
 			if (bufferedOutputStream != null) bufferedOutputStream.close();
 			if (socket != null) socket.close();
 			pttInterface.clRunning = 0;
+			pttInterface.progressBar.setIndeterminate(false);
 		}
 	}
 }
