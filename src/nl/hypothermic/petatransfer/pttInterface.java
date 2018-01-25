@@ -36,9 +36,17 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.ConnectException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 import java.awt.event.ActionEvent;
 import java.awt.ScrollPane;
@@ -61,6 +69,7 @@ public class pttInterface {
 	static String[] langNL = new String[] {"Lokale Bestandsnaam:","Lokale Poort:","Server Inschakelen","Opslaan als:","Extern Adres en Poort:","Ontvang Bestand","Info","Afsluiten","\n[ERR] Server niet bereikbaar.","todo","",""};
 	static String[] langENTT = new String[] {"todo","","","","","","",""};
 	static String[] langNLTT = new String[] {"todo","","","","","","",""};
+    private static List<String> cnx = new ArrayList<String>();
 	static String[] lang = new String[langEN.length];
 	static String[] langTT = new String[langENTT.length];
 	static int portNumber; // testing only, not in release.
@@ -99,6 +108,13 @@ public class pttInterface {
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
+				}
+				try {
+			        Enumeration<NetworkInterface> intfs = NetworkInterface.getNetworkInterfaces();
+			        for (NetworkInterface intf : Collections.list(intfs)) netInfo(intf);
+			        outField.append("\nLocal connections: " + cnx.toString().replaceAll("\\[", "").replaceAll("\\]", ""));
+				} catch (Exception x) {
+					x.printStackTrace();
 				}
 			}
 		});
@@ -426,5 +442,14 @@ public class pttInterface {
     			}
     		}
     	}
+    }
+    
+    static void netInfo(NetworkInterface intf) throws SocketException {
+        Enumeration<InetAddress> inetAddresses = intf.getInetAddresses();
+        for (InetAddress inetAddress : Collections.list(inetAddresses)) {
+        	if (inetAddress instanceof Inet4Address) {
+        		cnx.add(inetAddress.getHostAddress());
+        	}
+        }
     }
 }
